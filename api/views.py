@@ -1,16 +1,16 @@
 from django.db.models import Max
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
-from rest_framework.decorators 
-from rest_framework import generics 
-import api_view
+from rest_framework.decorators import api_view
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import generics
+from rest_framework.views import APIView
 from api.serializers import (
     ProductSerializer,
     ProductInfoSerializer,
     OrderSerializer,
 )
 from api.models import Product, Order
-
 
 class ProductListAPIView(generics.ListAPIView):
     queryset = Product.objects.filter(stock__gt=0)
@@ -20,12 +20,22 @@ class ProductListAPIView(generics.ListAPIView):
 class ProductDetailAPIView(generics.RetrieveAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    lookup_url_kwarg = 'product_id'
+    lookup_url_kwarg = "product_id"
 
 
 class OrderListAPIView(generics.ListAPIView):
     queryset = Order.objects.prefetch_related("items__product").select_related("user")
     serializer_class = OrderSerializer
+
+
+class UserOrderListAPIView(generics.ListAPIView):
+    queryset = Order.objects.prefetch_related("items__product").select_related("user")
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.filter(user=self.request.user)
 
 
 @api_view(["GET"])

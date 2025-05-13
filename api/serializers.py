@@ -54,7 +54,8 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
+    username = serializers.CharField(source="user.full_name", read_only=True)
+    email = serializers.EmailField(source="user.email", read_only=True)
     items = OrderItemSerializer(many=True, read_only=True)
     total_price = serializers.SerializerMethodField()
 
@@ -67,7 +68,8 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = (
             "order_id",
             "created_at",
-            "user",
+            "username",
+            "email",
             "status",
             "items",
             "total_price",
